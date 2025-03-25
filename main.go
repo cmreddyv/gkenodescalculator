@@ -21,7 +21,7 @@ func main() {
 
 	fmt.Scan(&i)
 
-	fmt.Print("enter the subnet range of the pods: 32, 24, 22, 16: ")
+	fmt.Print("enter the subnet range of the pods between 8 and 32: ")
 
 	fmt.Scan(&j)
 
@@ -35,7 +35,7 @@ func main() {
 
 		k := float64((32 - j))
 
-		fmt.Println("maximum number of node in a cluster: ", math.Pow(2, k)/float64(2*i))
+		fmt.Println("maximum number of node in a cluster: ", int64(math.Pow(2, k)/float64(2*i)))
 	}
 
 }
