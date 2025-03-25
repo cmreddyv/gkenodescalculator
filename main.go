@@ -25,8 +25,6 @@ func main() {
 
 	fmt.Scan(&j)
 
-	fmt.Println("j is:", j)
-
 	if j < 8 || j > 32 {
 
 		fmt.Println("enter the range of pod subnet between 8 and 32 only")
