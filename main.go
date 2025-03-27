@@ -13,36 +13,34 @@ import (
 	"log"
 	"math"
 	"os"
+	"strconv"
+	"strings"
 )
-
-// func main() {
-
-// 	var i, j int
-
-// 	fmt.Print("enter the max number of pods in node pool: ")
-
-// 	fmt.Scan(&i)
-
-// 	fmt.Print("enter the subnet range of the pods between 8 and 32: ")
-
-// 	fmt.Scan(&j)
-
-// 	if j < 8 || j > 32 {
-
-// 		fmt.Println("enter the range of pod subnet between 8 and 32 only")
-
-// 	} else {
-
-// 		k := float64((32 - j))
-
-// 		fmt.Println("maximum number of node in a cluster: ", int64(math.Pow(2, k)/float64(2*i)))
-// 	}
-
-// }
 
 type PodClusterCalculator struct {
 	MaxPodsPerNode int
 	SubnetRange    int
+}
+
+func ExtractSubnetMask(cidrNotation string) (int, error) {
+
+	parts := strings.Split(cidrNotation, "/")
+
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("Invalid CIDR notation: %s", cidrNotation)
+	}
+
+	subnetMask, err := strconv.Atoi(parts[1])
+
+	if err != nil {
+		return 0, fmt.Errorf("invalid subnet mask: %s", parts[1])
+	}
+
+	if subnetMask < 8 || subnetMask > 32 {
+		return 0, fmt.Errorf("subnet mask must be between 8 and 32, got: %d", subnetMask)
+	}
+
+	return subnetMask, nil
 }
 
 func (c *PodClusterCalculator) Validate() error {
@@ -68,7 +66,7 @@ func (c *PodClusterCalculator) CalculateMaxNodes() int {
 func (c *PodClusterCalculator) PrintClusterInfo() {
 	fmt.Printf("Cluster Configuration Details:\n")
 	fmt.Printf("- Max Pods Per Node: %d\n", c.MaxPodsPerNode)
-	fmt.Printf("- Pod Subnet Range: /%d\n", c.SubnetRange)
+	//fmt.Printf("- Pod Subnet Range: /%d\n", c.SubnetRange)
 	fmt.Printf("- Maximum Nodes in Cluster: %d\n", c.CalculateMaxNodes())
 }
 
@@ -83,12 +81,21 @@ func main() {
 		log.Fatal("Invalid input number of nodes")
 	}
 
-	fmt.Print("Enter the pods subnet range (between 8 and 32): ")
+	var cidrNotation string
 
-	_, err = fmt.Scan(&calculator.SubnetRange)
+	fmt.Print("Enter the pod subnet CIDR (e.g., 10.0.0.0/23): ")
+
+	_, err = fmt.Scan(&cidrNotation)
 
 	if err != nil {
-		log.Fatal("Invalid input for subnet range")
+		log.Fatal("Invalid input for CIDR notation")
+	}
+
+	calculator.SubnetRange, err = ExtractSubnetMask(cidrNotation)
+
+	if err != nil {
+		fmt.Println("Error: ", err)
+		os.Exit(1)
 	}
 
 	if err := calculator.Validate(); err != nil {
